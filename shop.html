@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<title>电商直销 - 智慧农业集成平台</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="css/normalize.css">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/featherlight.min.css">
+	<link href='https://fonts.googleapis.com/css?family=Arimo:400,700' rel='stylesheet' type='text/css'>
+	<script src="https://code.jquery.com/jquery-latest.min.js"></script>
+	<script type="text/javascript" src="js/featherlight.min.js"></script>
+	<style>
+		.shop-hero {
+			text-align: center;
+			padding: 80px 0 60px;
+			background: #E8F5E9;
+		}
+		.shop-hero h2 { color: #1B5E20; font-size: 56px; margin-bottom: 10px; }
+		.shop-hero p.subtitle { color: #2E7D32; font-size: 18px; }
+		.product-grid {
+			display: flex;
+			gap: 30px;
+			justify-content: center;
+			flex-wrap: wrap;
+			margin: 60px auto;
+			max-width: 1000px;
+		}
+		.product-card {
+			background: #fff;
+			border-radius: 16px;
+			padding: 40px 30px;
+			width: 420px;
+			text-align: center;
+			box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+			transition: all 0.3s ease;
+		}
+		.product-card:hover {
+			box-shadow: 0 8px 40px rgba(46,125,50,0.15);
+			transform: translateY(-4px);
+		}
+		.product-card.featured {
+			border: 3px solid #2E7D32;
+		}
+		.product-card .badge {
+			display: inline-block;
+			background: #2E7D32;
+			color: #fff;
+			font-family: 'Arimo', sans-serif;
+			font-weight: 700;
+			font-size: 13px;
+			text-transform: uppercase;
+			padding: 6px 18px;
+			border-radius: 999px;
+			margin-bottom: 20px;
+		}
+		.product-card h5 { color: #2E7D32; font-size: 26px; margin-bottom: 8px; }
+		.product-card .price {
+			font-family: 'Arimo', sans-serif;
+			font-size: 52px;
+			font-weight: 700;
+			color: #2E7D32;
+			margin: 16px 0;
+		}
+		.product-card .price .unit { font-size: 21px; color: #777; }
+		.product-card .features { margin: 20px 0 30px; }
+		.product-card .features li {
+			display: block;
+			width: 100%;
+			padding: 8px;
+			font-family: 'Arimo', sans-serif;
+			text-transform: uppercase;
+			font-weight: 700;
+			color: #888;
+			font-size: 14px;
+		}
+		.farmer-section {
+			text-align: center;
+			padding: 80px 0;
+			background: #F1F8E9;
+		}
+		.farmer-grid {
+			display: flex;
+			gap: 30px;
+			justify-content: center;
+			flex-wrap: wrap;
+			margin: 40px auto 0;
+			max-width: 1000px;
+		}
+		.farmer-card {
+			background: #fff;
+			border-radius: 12px;
+			padding: 30px;
+			width: 300px;
+			text-align: center;
+			box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+		}
+		.farmer-card img {
+			width: 120px;
+			height: 120px;
+			border-radius: 999px;
+			background: #E8F5E9;
+			margin-bottom: 16px;
+			object-fit: cover;
+		}
+		.farmer-card h5 { color: #2E7D32; margin-bottom: 4px; }
+		.farmer-card .village { color: #777; font-size: 14px; margin-bottom: 8px; }
+		.farmer-card .story { color: #555; font-size: 15px; line-height: 1.6; }
+		.process-section {
+			text-align: center;
+			padding: 80px 0;
+			background: #fff;
+		}
+		.process-steps {
+			display: flex;
+			gap: 20px;
+			justify-content: center;
+			flex-wrap: wrap;
+			margin: 40px auto 0;
+			max-width: 1100px;
+		}
+		.step-card {
+			background: #F1F8E9;
+			border-radius: 12px;
+			padding: 30px 20px;
+			width: 220px;
+			text-align: center;
+		}
+		.step-card .step-num {
+			display: inline-block;
+			width: 48px;
+			height: 48px;
+			line-height: 48px;
+			background: #2E7D32;
+			color: #fff;
+			border-radius: 999px;
+			font-family: 'Arimo', sans-serif;
+			font-size: 22px;
+			font-weight: 700;
+			margin-bottom: 16px;
+		}
+		.step-card h5 { color: #2E7D32; margin-bottom: 8px; font-size: 16px; }
+		.step-card p { color: #777; font-size: 14px; }
+		@media only screen and (max-width: 960px) {
+			.product-card, .farmer-card, .step-card { width: 90%; }
+		}
+	</style>
+</head>
+<body>
+	<header id="top">
+		<div class="wrapper">
+			<h1 class="logo"><a href="index.html">智慧农业</a></h1>
+			<nav>
+				<ul id="navigation">
+					<li><a href="index.html">返回首页</a></li>
+					<li><a href="monitor.html">智能监测</a></li>
+					<li><a class="nav-cta" href="#">立即下单</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+
+	<section class="shop-hero">
+		<div class="wrapper">
+			<h2>产地直供</h2>
+			<p class="subtitle">余姚杨梅 · 当天采摘 · 产地直发</p>
+		</div>
+	</section>
+
+	<section class="pricing-section">
+		<div class="wrapper">
+			<h3>精选产品</h3>
+			<p class="subtitle">品质分级，满足不同需求</p>
+			<div class="product-grid">
+				<div class="product-card">
+					<div class="badge">家庭尝鲜</div>
+					<h5>精品杨梅 3斤装</h5>
+					<div class="price">89<span class="unit"> 元</span></div>
+					<ul class="features">
+						<li>精选大果 · 单果 12g+</li>
+						<li>当天清晨采摘</li>
+						<li>冰袋 + 泡沫箱保鲜包装</li>
+						<li>江浙沪次日达</li>
+					</ul>
+					<a href="#" class="button-1">立即购买</a>
+				</div>
+				<div class="product-card featured">
+					<div class="badge">送礼推荐</div>
+					<h5>甄选礼盒 5斤装</h5>
+					<div class="price">158<span class="unit"> 元</span></div>
+					<ul class="features">
+						<li>特选大果 · 单果 15g+</li>
+						<li>品牌礼盒 · 送礼体面</li>
+						<li>产地溯源二维码</li>
+						<li>顺丰冷链配送</li>
+					</ul>
+					<a href="#" class="button-1">立即购买</a>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="process-section">
+		<div class="wrapper">
+			<h3>购买流程</h3>
+			<p class="subtitle">从小程序下单到收货，全程可追踪</p>
+			<div class="process-steps">
+				<div class="step-card">
+					<div class="step-num">1</div>
+					<h5>微信小程序下单</h5>
+					<p>选择规格，填写地址，在线支付</p>
+				</div>
+				<div class="step-card">
+					<div class="step-num">2</div>
+					<h5>农户接单采摘</h5>
+					<p>清晨采摘，确保新鲜度</p>
+				</div>
+				<div class="step-card">
+					<div class="step-num">3</div>
+					<h5>村级集单打包</h5>
+					<p>统一送至集单点，批量发货</p>
+				</div>
+				<div class="step-card">
+					<div class="step-num">4</div>
+					<h5>快递冷链配送</h5>
+					<p>冰袋保鲜，次日送达</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="farmer-section">
+		<div class="wrapper">
+			<h3>合作农户</h3>
+			<p class="subtitle">每一颗杨梅背后，都有一位用心种植的梅农</p>
+			<div class="farmer-grid">
+				<div class="farmer-card">
+					<img src="images/team-1.jpg" alt="农户照片">
+					<h5>王大叔</h5>
+					<p class="village">余姚三七市镇 · 种植 15 年</p>
+					<p class="story">"以前只能等人来收，价格人家说了算。现在通过平台直接卖给城里人，价格翻了一倍。"</p>
+				</div>
+				<div class="farmer-card">
+					<img src="images/team-2.jpg" alt="农户照片">
+					<h5>李大姐</h5>
+					<p class="village">余姚三七市镇 · 种植 8 年</p>
+					<p class="story">"小程序操作简单，我女儿教了我一次就会了。今年杨梅还没熟已经有老客户预定了。"</p>
+				</div>
+				<div class="farmer-card">
+					<img src="images/team-3.jpg" alt="农户照片">
+					<h5>陈大哥</h5>
+					<p class="village">绍兴东光村 · 种植 20 年</p>
+					<p class="story">"大学生帮我们设计的礼盒很漂亮，送礼有面子，今年多赚了一万多块。"</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="text-section">
+		<div class="text align-center">
+			<h3>开启您的杨梅季</h3>
+			<p class="subtitle">微信搜索「梅韵智农」小程序，尝鲜当季余姚杨梅</p>
+			<p><a href="index.html" class="button-1">返回首页</a></p>
+		</div>
+	</section>
+
+	<footer>
+		<div class="wrapper">
+			<a class="logo" href="index.html">智慧农业</a>
+			<div class="footer-left">
+				<p class="copyright">版权所有 &copy; 2026 智慧农业集成平台 - 电商直销</p>
+			</div>
+			<div class="footer-right">
+				<a href="index.html" class="back-link">← 返回主页面</a>
+			</div>
+			<div class="clear"></div>
+		</div>
+	</footer>
+</body>
+</html>

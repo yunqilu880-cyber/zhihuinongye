@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<title>物流协同 - 智慧农业集成平台</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="css/normalize.css">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/featherlight.min.css">
+	<link href='https://fonts.googleapis.com/css?family=Arimo:400,700' rel='stylesheet' type='text/css'>
+	<script src="https://code.jquery.com/jquery-latest.min.js"></script>
+	<script type="text/javascript" src="js/featherlight.min.js"></script>
+	<style>
+		.logistics-hero {
+			text-align: center;
+			padding: 80px 0 60px;
+			background: #E8F5E9;
+		}
+		.logistics-hero h2 { color: #1B5E20; font-size: 56px; margin-bottom: 10px; }
+		.logistics-hero p.subtitle { color: #2E7D32; font-size: 18px; }
+		.info-grid {
+			display: flex;
+			gap: 30px;
+			justify-content: center;
+			flex-wrap: wrap;
+			margin: 50px auto 0;
+			max-width: 1100px;
+		}
+		.info-card {
+			background: #fff;
+			border-radius: 16px;
+			padding: 36px 32px;
+			width: 480px;
+			box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+			text-align: left;
+		}
+		.info-card h5 { color: #2E7D32; margin-bottom: 16px; font-size: 22px; text-align: center; }
+		.info-card .highlight {
+			text-align: center;
+			font-family: 'Arimo', sans-serif;
+			font-size: 48px;
+			font-weight: 700;
+			color: #2E7D32;
+			margin: 16px 0;
+		}
+		.info-card .highlight small { font-size: 20px; color: #777; }
+		.info-card p { font-size: 15px; color: #555; line-height: 1.7; }
+		.info-table {
+			width: 100%;
+			border-collapse: collapse;
+			margin: 16px 0;
+		}
+		.info-table th, .info-table td {
+			border: 1px solid #C8E6C9;
+			padding: 12px 16px;
+			font-size: 15px;
+		}
+		.info-table th {
+			background: #2E7D32;
+			color: #fff;
+			font-family: 'Arimo', sans-serif;
+			text-transform: uppercase;
+			font-weight: 700;
+			font-size: 14px;
+		}
+		.info-table tr:nth-child(even) { background: #E8F5E9; }
+		.process-flow {
+			display: flex;
+			gap: 0;
+			justify-content: center;
+			flex-wrap: wrap;
+			margin: 40px auto 0;
+			max-width: 1100px;
+		}
+		.flow-step {
+			background: #fff;
+			border: 2px solid #E8F5E9;
+			border-radius: 12px;
+			padding: 30px 20px;
+			width: 240px;
+			text-align: center;
+			position: relative;
+		}
+		.flow-step .flow-icon {
+			font-size: 40px;
+			margin-bottom: 12px;
+		}
+		.flow-step h5 { color: #2E7D32; margin-bottom: 8px; font-size: 16px; }
+		.flow-step p { color: #777; font-size: 13px; }
+		.flow-arrow {
+			display: flex;
+			align-items: center;
+			font-size: 28px;
+			color: #2E7D32;
+			padding: 0 8px;
+		}
+		.flow-note {
+			text-align: center;
+			margin-top: 30px;
+			padding: 16px 24px;
+			background: #FFF3E0;
+			border-left: 4px solid #FF9800;
+			border-radius: 0 8px 8px 0;
+			max-width: 1100px;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		.flow-note p { color: #E65100; font-size: 14px; margin: 0; }
+		@media only screen and (max-width: 960px) {
+			.info-card, .flow-step { width: 90%; }
+			.flow-arrow { transform: rotate(90deg); padding: 8px 0; }
+		}
+	</style>
+</head>
+<body>
+	<header id="top">
+		<div class="wrapper">
+			<h1 class="logo"><a href="index.html">智慧农业</a></h1>
+			<nav>
+				<ul id="navigation">
+					<li><a href="index.html">返回首页</a></li>
+					<li><a href="shop.html">电商直销</a></li>
+					<li><a class="nav-cta" href="#">合作咨询</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+
+	<section class="logistics-hero">
+		<div class="wrapper">
+			<h2>物流协同</h2>
+			<p class="subtitle">村级集单 + 简易保鲜，让杨梅跑得更远</p>
+		</div>
+	</section>
+
+	<section class="data-section" style="background: #fff;">
+		<div class="wrapper">
+			<h3>物流流程</h3>
+			<p class="subtitle">从枝头到舌尖，48 小时新鲜直达</p>
+			<div class="process-flow">
+				<div class="flow-step">
+					<div class="flow-icon">🌅</div>
+					<h5>清晨采摘</h5>
+					<p>农户清晨 5-7 点采摘，避开高温时段，确保果实硬度与新鲜度</p>
+				</div>
+				<div class="flow-arrow">→</div>
+				<div class="flow-step">
+					<div class="flow-icon">📦</div>
+					<h5>村级集单</h5>
+					<p>上午 9 点前送至村委会集单点，统一分拣、称重、打包</p>
+				</div>
+				<div class="flow-arrow">→</div>
+				<div class="flow-step">
+					<div class="flow-icon">🧊</div>
+					<h5>保鲜包装</h5>
+					<p>冰袋 + 泡沫箱 + 吸水纸，单件成本 3-5 元，保鲜期延长至 3-4 天</p>
+				</div>
+				<div class="flow-arrow">→</div>
+				<div class="flow-step">
+					<div class="flow-icon">🚚</div>
+					<h5>快递发运</h5>
+					<p>对接菜鸟乡村 / 顺丰，争取农产品优惠价，批量发货降低成本</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="features-section">
+		<div class="wrapper">
+			<h3 style="color: #fff; text-align: center;">成本与时效</h3>
+			<p class="subtitle" style="color: #C8E6C9;">用最低的成本，跑赢最短的保鲜期</p>
+			<div class="info-grid">
+				<div class="info-card">
+					<h5>保鲜方案</h5>
+					<div class="highlight">3-5<span style="font-size: 24px;"> 元/单</span></div>
+					<table class="info-table">
+						<tr><th>材料</th><th>用途</th><th>单价</th></tr>
+						<tr><td>泡沫箱</td><td>保温隔热 + 防震</td><td>~2 元</td></tr>
+						<tr><td>冰袋</td><td>降温保鲜</td><td>~1 元</td></tr>
+						<tr><td>吸水纸</td><td>吸收冷凝水</td><td>~0.5 元</td></tr>
+						<tr><td>包装胶带</td><td>密封固定</td><td>~0.5 元</td></tr>
+					</table>
+					<p>保鲜期从常温 1-2 天延长至 3-4 天，覆盖次日达配送范围</p>
+				</div>
+				<div class="info-card">
+					<h5>配送时效</h5>
+					<div class="highlight">次日达<span style="font-size: 24px;"> 覆盖</span></div>
+					<table class="info-table">
+						<tr><th>目的地</th><th>时效</th><th>运费参考</th></tr>
+						<tr><td>宁波市区</td><td>次日达</td><td>~12 元/单</td></tr>
+						<tr><td>杭州/上海</td><td>次日达</td><td>~15 元/单</td></tr>
+						<tr><td>南京/合肥</td><td>隔日达</td><td>~18 元/单</td></tr>
+						<tr><td>其他地区</td><td>2-3 天</td><td>~22 元/单</td></tr>
+					</table>
+					<p>村级集单批量发货，单件物流成本降低约 30%</p>
+				</div>
+			</div>
+			<div class="flow-note">
+				<p><strong>明确不做：</strong>自建冷链物流、真空预冷设备等重资产投入。采用与现有快递网络合作的轻资产模式，降低启动门槛。</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="text-section">
+		<div class="wrapper">
+			<div class="image align-left">
+				<img src="images/light-bulb.png" alt="物流协同" class="align-left">
+			</div>
+			<div class="text align-left">
+				<h3>为什么选择村级集单？</h3>
+				<p class="subtitle">散户单打独斗的物流困境</p>
+				<p>单个农户发货面临两大难题：一是快递不上门取件，二是单件价格太高。以余姚到上海为例，个人寄一箱杨梅的快递费约 25 元，而批量发货可降至 15 元以下。</p>
+				<p>我们在村委会或合作农户家设立临时代发点，农户将当日采摘的杨梅统一送至集单点，由团队安排批量发货。统一包装、统一品控、统一发货，既降低了成本，又提升了消费者体验。</p>
+			</div>
+			<div class="clear"></div>
+		</div>
+	</section>
+
+	<section class="text-section">
+		<div class="text align-center">
+			<h3>合作快递伙伴</h3>
+			<p class="subtitle">对接现有物流网络，不重复造轮子</p>
+			<div class="info-grid" style="justify-content: center;">
+				<div class="step-card" style="background: #F1F8E9; border-radius: 12px; padding: 24px; width: 200px; text-align: center;">
+					<h5 style="color: #2E7D32;">菜鸟乡村</h5>
+					<p style="color: #777; font-size: 14px;">农产品寄件优惠方案</p>
+				</div>
+				<div class="step-card" style="background: #F1F8E9; border-radius: 12px; padding: 24px; width: 200px; text-align: center;">
+					<h5 style="color: #2E7D32;">顺丰速运</h5>
+					<p style="color: #777; font-size: 14px;">乡镇覆盖 + 冷链方案</p>
+				</div>
+				<div class="step-card" style="background: #F1F8E9; border-radius: 12px; padding: 24px; width: 200px; text-align: center;">
+					<h5 style="color: #2E7D32;">京东物流</h5>
+					<p style="color: #777; font-size: 14px;">产地直发专项服务</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="email-list-section">
+		<h3>物流合作咨询</h3>
+		<p class="subtitle">如果您是快递企业或有冷链资源，欢迎与我们合作</p>
+		<form>
+			<input type="text" value="您的姓名">
+			<input type="text" value="联系方式">
+			<button type="submit" title="Submit">提交</button>
+		</form>
+	</section>
+
+	<footer>
+		<div class="wrapper">
+			<a class="logo" href="index.html">智慧农业</a>
+			<div class="footer-left">
+				<p class="copyright">版权所有 &copy; 2026 智慧农业集成平台 - 物流协同</p>
+			</div>
+			<div class="footer-right">
+				<a href="index.html" class="back-link">← 返回主页面</a>
+			</div>
+			<div class="clear"></div>
+		</div>
+	</footer>
+</body>
+</html>
