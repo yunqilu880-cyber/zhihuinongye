@@ -65,6 +65,12 @@
 			box-sizing: border-box;
 		}
 		.form-group input:focus { border-color: #2E7D32; }
+		.form-group input::placeholder {
+			font-size: 15px;
+			font-weight: 400;
+			color: #AAA;
+			font-family: inherit;
+		}
 		.auth-submit {
 			width: 100%;
 			padding: 16px;
@@ -136,7 +142,7 @@
 				</div>
 				<div class="form-group">
 					<label>昵称（可选）</label>
-					<input type="text" id="registerName" placeholder="给自己起个名字吧">
+<input type="text" id="registerName" placeholder="请输入昵称（可选）">
 				</div>
 				<button type="submit" class="auth-submit" id="registerBtn">注 册</button>
 				<a href="index.html" class="back-link">← 返回首页</a>
