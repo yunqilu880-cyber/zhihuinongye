@@ -11,6 +11,7 @@
 	<script src="https://code.jquery.com/jquery-latest.min.js"></script>
 	<script type="text/javascript" src="js/featherlight.min.js"></script>
 	<style>
+		/* ===== 电商页面样式 ===== */
 		.shop-hero {
 			text-align: center;
 			padding: 80px 0 60px;
@@ -18,22 +19,48 @@
 		}
 		.shop-hero h2 { color: #1B5E20; font-size: 56px; margin-bottom: 10px; }
 		.shop-hero p.subtitle { color: #2E7D32; font-size: 18px; }
+
+		/* 分类标签 */
+		.category-tabs {
+			display: flex;
+			gap: 12px;
+			justify-content: center;
+			flex-wrap: wrap;
+			margin: 40px auto 0;
+			max-width: 800px;
+		}
+		.category-tab {
+			background: #fff;
+			border: 2px solid #C8E6C9;
+			color: #2E7D32;
+			font-family: 'Arimo', sans-serif;
+			font-size: 15px;
+			font-weight: 700;
+			padding: 10px 24px;
+			border-radius: 999px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
+		.category-tab:hover { background: #E8F5E9; }
+		.category-tab.active { background: #2E7D32; color: #fff; border-color: #2E7D32; }
+
 		.product-grid {
 			display: flex;
 			gap: 30px;
 			justify-content: center;
 			flex-wrap: wrap;
-			margin: 60px auto;
-			max-width: 1000px;
+			margin: 40px auto 60px;
+			max-width: 1100px;
 		}
 		.product-card {
 			background: #fff;
 			border-radius: 16px;
 			padding: 40px 30px;
-			width: 420px;
+			width: 320px;
 			text-align: center;
 			box-shadow: 0 4px 24px rgba(0,0,0,0.06);
 			transition: all 0.3s ease;
+			position: relative;
 		}
 		.product-card:hover {
 			box-shadow: 0 8px 40px rgba(46,125,50,0.15);
@@ -41,6 +68,25 @@
 		}
 		.product-card.featured {
 			border: 3px solid #2E7D32;
+		}
+		/* 商品图片占位 */
+		.product-card .product-img {
+			width: 100%;
+			height: 180px;
+			border-radius: 12px;
+			background: #E8F5E9;
+			margin-bottom: 20px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 48px;
+			color: #81C784;
+		}
+		.product-card .product-img img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			border-radius: 12px;
 		}
 		.product-card .badge {
 			display: inline-block;
@@ -52,9 +98,9 @@
 			text-transform: uppercase;
 			padding: 6px 18px;
 			border-radius: 999px;
-			margin-bottom: 20px;
+			margin-bottom: 16px;
 		}
-		.product-card h5 { color: #2E7D32; font-size: 26px; margin-bottom: 8px; }
+		.product-card h5 { color: #2E7D32; font-size: 22px; margin-bottom: 8px; }
 		.product-card .price {
 			font-family: 'Arimo', sans-serif;
 			font-size: 52px;
@@ -63,17 +109,88 @@
 			margin: 16px 0;
 		}
 		.product-card .price .unit { font-size: 21px; color: #777; }
-		.product-card .features { margin: 20px 0 30px; }
+		.product-card .original-price {
+			font-size: 16px;
+			color: #999;
+			text-decoration: line-through;
+			margin-top: -10px;
+			margin-bottom: 14px;
+		}
+		.product-card .weight-tag {
+			display: inline-block;
+			background: #F1F8E9;
+			color: #558B2F;
+			font-family: 'Arimo', sans-serif;
+			font-size: 13px;
+			font-weight: 700;
+			padding: 4px 14px;
+			border-radius: 999px;
+			margin-bottom: 16px;
+		}
+		.product-card .features { margin: 16px 0 24px; }
 		.product-card .features li {
 			display: block;
 			width: 100%;
-			padding: 8px;
+			padding: 6px 0;
 			font-family: 'Arimo', sans-serif;
-			text-transform: uppercase;
-			font-weight: 700;
-			color: #888;
+			text-transform: none;
+			font-weight: 400;
+			color: #666;
 			font-size: 14px;
 		}
+		.product-card .add-to-cart-btn {
+			display: inline-block;
+			font-family: 'Arimo', sans-serif;
+			font-weight: 700;
+			font-size: 14px;
+			text-transform: uppercase;
+			text-decoration: none;
+			color: #2E7D32;
+			border: 2px solid #2E7D32;
+			border-radius: 999px;
+			padding: 12px 32px;
+			cursor: pointer;
+			background: #fff;
+			transition: all 0.3s ease;
+		}
+		.product-card .add-to-cart-btn:hover {
+			background: #2E7D32;
+			color: #fff;
+		}
+		.product-card .add-to-cart-btn.added {
+			background: #81C784;
+			border-color: #81C784;
+			color: #fff;
+		}
+
+		/* 加载中 */
+		.loading-spinner {
+			text-align: center;
+			padding: 60px;
+			color: #81C784;
+			font-size: 36px;
+		}
+
+		/* Toast 提示 */
+		.toast {
+			position: fixed;
+			top: 20px;
+			left: 50%;
+			transform: translateX(-50%);
+			background: #2E7D32;
+			color: #fff;
+			padding: 14px 28px;
+			border-radius: 999px;
+			font-family: 'Arimo', sans-serif;
+			font-weight: 700;
+			font-size: 15px;
+			z-index: 9999;
+			opacity: 0;
+			transition: opacity 0.3s ease;
+			pointer-events: none;
+		}
+		.toast.show { opacity: 1; }
+
 		.farmer-section {
 			text-align: center;
 			padding: 80px 0;
@@ -147,6 +264,10 @@
 	</style>
 </head>
 <body>
+
+	<!-- Toast 提示 -->
+	<div id="toast" class="toast"></div>
+
 	<header id="top">
 		<div class="wrapper">
 			<h1 class="logo"><a href="index.html">智慧农业</a></h1>
@@ -154,7 +275,7 @@
 				<ul id="navigation">
 					<li><a href="index.html">返回首页</a></li>
 					<li><a href="monitor.html">智能监测</a></li>
-					<li><a class="nav-cta" href="#">立即下单</a></li>
+					<li><a class="nav-cta" href="#products">立即下单</a></li>
 				</ul>
 			</nav>
 		</div>
@@ -167,35 +288,18 @@
 		</div>
 	</section>
 
+	<a name="products"></a>
 	<section class="pricing-section">
 		<div class="wrapper">
 			<h3>精选产品</h3>
 			<p class="subtitle">品质分级，满足不同需求</p>
-			<div class="product-grid">
-				<div class="product-card">
-					<div class="badge">家庭尝鲜</div>
-					<h5>精品杨梅 3斤装</h5>
-					<div class="price">89<span class="unit"> 元</span></div>
-					<ul class="features">
-						<li>精选大果 · 单果 12g+</li>
-						<li>当天清晨采摘</li>
-						<li>冰袋 + 泡沫箱保鲜包装</li>
-						<li>江浙沪次日达</li>
-					</ul>
-					<a href="#" class="button-1">立即购买</a>
-				</div>
-				<div class="product-card featured">
-					<div class="badge">送礼推荐</div>
-					<h5>甄选礼盒 5斤装</h5>
-					<div class="price">158<span class="unit"> 元</span></div>
-					<ul class="features">
-						<li>特选大果 · 单果 15g+</li>
-						<li>品牌礼盒 · 送礼体面</li>
-						<li>产地溯源二维码</li>
-						<li>顺丰冷链配送</li>
-					</ul>
-					<a href="#" class="button-1">立即购买</a>
-				</div>
+			<!-- 分类标签（动态加载） -->
+			<div class="category-tabs" id="categoryTabs">
+				<button class="category-tab active" data-category="0">全部</button>
+			</div>
+			<!-- 商品列表（动态加载） -->
+			<div class="product-grid" id="productGrid">
+				<div class="loading-spinner">加载中...</div>
 			</div>
 		</div>
 	</section>
@@ -276,5 +380,163 @@
 			<div class="clear"></div>
 		</div>
 	</footer>
+
+	<!-- ===== 前后端对接脚本 ===== -->
+	<script>
+		const API_BASE = window.location.origin + '/api';
+		let allProducts = [];
+		let allCategories = [];
+
+		// Toast 提示
+		function showToast(msg) {
+			const t = document.getElementById('toast');
+			t.textContent = msg;
+			t.classList.add('show');
+			setTimeout(() => t.classList.remove('show'), 2000);
+		}
+
+		// 获取 Token（从 localStorage 读取）
+		function getToken() {
+			return localStorage.getItem('chase_shop_token');
+		}
+
+		// 加载分类
+		async function loadCategories() {
+			try {
+				const res = await fetch(API_BASE + '/products/categories');
+				const data = await res.json();
+				if (data.code === 200) {
+					allCategories = data.data;
+					renderCategoryTabs();
+				}
+			} catch (err) {
+				console.error('加载分类失败:', err);
+			}
+		}
+
+		// 渲染分类标签
+		function renderCategoryTabs() {
+			const container = document.getElementById('categoryTabs');
+			let html = '<button class="category-tab active" data-category="0">全部</button>';
+			allCategories.forEach(cat => {
+				html += `<button class="category-tab" data-category="${cat.id}">${cat.icon} ${cat.name}</button>`;
+			});
+			container.innerHTML = html;
+
+			// 绑定点击事件
+			container.querySelectorAll('.category-tab').forEach(btn => {
+				btn.addEventListener('click', function () {
+					container.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+					this.classList.add('active');
+					filterProducts(this.dataset.category);
+				});
+			});
+		}
+
+		// 加载商品列表
+		async function loadProducts(categoryId = '') {
+			try {
+				const params = new URLSearchParams({ pageSize: 50 });
+				if (categoryId && categoryId !== '0') params.append('category_id', categoryId);
+				const res = await fetch(API_BASE + '/products?' + params.toString());
+				const data = await res.json();
+				if (data.code === 200) {
+					allProducts = data.data.list;
+					renderProducts(allProducts);
+				}
+			} catch (err) {
+				console.error('加载商品失败:', err);
+				document.getElementById('productGrid').innerHTML =
+					'<div class="loading-spinner" style="color:#E53935;">加载失败，请刷新重试</div>';
+			}
+		}
+
+		// 筛选商品
+		function filterProducts(categoryId) {
+			if (!categoryId || categoryId === '0') {
+				renderProducts(allProducts);
+			} else {
+				const filtered = allProducts.filter(p => p.category_id === parseInt(categoryId));
+				renderProducts(filtered);
+			}
+		}
+
+		// 渲染商品卡片
+		function renderProducts(products) {
+			const container = document.getElementById('productGrid');
+			if (products.length === 0) {
+				container.innerHTML = '<div class="loading-spinner">暂无商品</div>';
+				return;
+			}
+
+			let html = '';
+			products.forEach(p => {
+				const specs = (p.specs || '').split('\n').filter(s => s.trim());
+				const specHtml = specs.map(s => `<li>${s}</li>`).join('');
+				const featuredClass = p.is_featured ? ' featured' : '';
+				// 商品图片占位（后续可替换）
+				const imgTag = p.image
+					? `<img src="${p.image}" alt="${p.name}" loading="lazy">`
+					: `🍑`;
+
+				html += `
+				<div class="product-card${featuredClass}" data-id="${p.id}">
+					<div class="product-img">${imgTag}</div>
+					${p.badge ? `<div class="badge">${p.badge}</div>` : ''}
+					<h5>${p.name}</h5>
+					${p.weight ? `<div class="weight-tag">${p.weight}</div>` : ''}
+					<div class="price">${p.price}<span class="unit"> 元</span></div>
+					${p.original_price ? `<div class="original-price">原价 ${p.original_price} 元</div>` : ''}
+					<ul class="features">${specHtml}</ul>
+					<button class="add-to-cart-btn" onclick="addToCart(${p.id}, this)" ${p.stock <= 0 ? 'disabled' : ''}>
+						${p.stock > 0 ? '加入购物车' : '暂时缺货'}
+					</button>
+				</div>`;
+			});
+
+			container.innerHTML = html;
+		}
+
+		// 加入购物车
+		async function addToCart(productId, btn) {
+			const token = getToken();
+			if (!token) {
+				showToast('请先登录后再加入购物车');
+				return;
+			}
+
+			try {
+				const res = await fetch(API_BASE + '/cart', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer ' + token,
+					},
+					body: JSON.stringify({ product_id: productId, quantity: 1 }),
+				});
+				const data = await res.json();
+				if (data.code === 200) {
+					btn.classList.add('added');
+					btn.textContent = '已加入 ✓';
+					showToast('已加入购物车');
+					setTimeout(() => {
+						btn.classList.remove('added');
+						btn.textContent = '加入购物车';
+					}, 2000);
+				} else {
+					showToast(data.msg || '操作失败');
+				}
+			} catch (err) {
+				showToast('网络错误，请重试');
+			}
+		}
+
+		// 页面初始化
+		async function init() {
+			await loadCategories();
+			await loadProducts();
+		}
+		init();
+	</script>
 </body>
 </html>
