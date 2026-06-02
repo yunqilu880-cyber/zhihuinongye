@@ -957,9 +957,24 @@
 			} catch (err) { showToast('操作失败'); }
 		}
 
-		function checkout() {
-			closeCart();
-			window.location.href = 'user-center.html';
+		async function checkout() {
+			const token = getToken();
+			if (!token) { showToast('请先登录'); return; }
+			try {
+				const res = await fetch(API_BASE + '/cart', {
+					headers: { 'Authorization': 'Bearer ' + token },
+				});
+				const data = await res.json();
+				if (data.code === 200 && data.data && data.data.length > 0) {
+					const cartIds = data.data.map(item => item.id).join(',');
+					closeCart();
+					window.location.href = 'checkout.html?cart_ids=' + cartIds;
+				} else {
+					showToast('购物车为空');
+				}
+			} catch (err) {
+				showToast('加载购物车失败');
+			}
 		}
 
 		// 更新加入购物车回调，同时刷新购物车图标

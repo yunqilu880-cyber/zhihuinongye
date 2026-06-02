@@ -217,6 +217,42 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// PUT /api/orders/:id/pay - 模拟支付
+router.put('/:id/pay', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [orders] = await pool.query(
+      'SELECT * FROM orders WHERE id = ? AND user_id = ?',
+      [id, req.userId]
+    );
+    if (orders.length === 0) {
+      return res.status(404).json({ code: 404, msg: '订单不存在' });
+    }
+    if (orders[0].status !== 'pending') {
+      return res.status(400).json({ code: 400, msg: '订单状态不允许支付' });
+    }
+
+    // 生成支付流水号
+    const paymentNo = 'PAY' + Date.now() + Math.floor(Math.random() * 1000);
+    
+    await pool.query(
+      "UPDATE orders SET status = 'paid', paid_at = NOW() WHERE id = ?",
+      [id]
+    );
+
+    // 记录支付
+    await pool.query(
+      'INSERT INTO payments (order_id, payment_no, amount, method, status, paid_at) VALUES (?, ?, ?, ?, ?, NOW())',
+      [id, paymentNo, orders[0].total_amount, 'wechat', 'success']
+    );
+
+    res.json({ code: 200, msg: '支付成功' });
+  } catch (err) {
+    console.error('支付失败:', err);
+    res.status(500).json({ code: 500, msg: '服务器错误' });
+  }
+});
+
 // PUT /api/orders/:id/cancel - 取消订单
 router.put('/:id/cancel', async (req, res) => {
   const { id } = req.params;

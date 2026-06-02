@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<title>结算 - 智慧农业</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="css/normalize.css">
+	<link rel="stylesheet" href="css/style.css">
+	<script src="js/auth-ui.js"></script>
+	<style>
+		body { background: #F5F5F5; }
+		.checkout-container {
+			max-width: 900px;
+			margin: 40px auto;
+			padding: 0 20px;
+		}
+		.checkout-container h2 {
+			text-align: center;
+			color: #1B5E20;
+			font-size: 32px;
+			margin-bottom: 30px;
+		}
+		.checkout-section {
+			background: #fff;
+			border-radius: 16px;
+			padding: 24px;
+			margin-bottom: 20px;
+			box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+		}
+		.checkout-section h4 {
+			color: #2E7D32;
+			font-size: 18px;
+			margin-bottom: 16px;
+			padding-bottom: 12px;
+			border-bottom: 1px solid #E8F5E9;
+		}
+		/* 地址选择 */
+		.address-select-item {
+			display: flex;
+			align-items: flex-start;
+			gap: 12px;
+			padding: 14px 16px;
+			border: 2px solid #E0E0E0;
+			border-radius: 12px;
+			margin-bottom: 10px;
+			cursor: pointer;
+			transition: all .3s;
+		}
+		.address-select-item:hover { border-color: #81C784; background: #FAFAFA; }
+		.address-select-item.selected { border-color: #2E7D32; background: #F1F8E9; }
+		.address-select-item input[type="radio"] { margin-top: 3px; accent-color: #2E7D32; }
+		.address-select-item .addr-info { flex:1; }
+		.address-select-item .addr-info .name { font-weight: 700; color: #333; margin-bottom: 4px; }
+		.address-select-item .addr-info .phone { color: #999; margin-left: 12px; }
+		.address-select-item .addr-info .full { color: #666; font-size: 14px; }
+		.no-address {
+			text-align: center;
+			padding: 30px;
+			color: #999;
+		}
+		.no-address a { color: #2E7D32; font-weight: 700; text-decoration: underline; }
+		/* 商品清单 */
+		.checkout-product-item {
+			display: flex;
+			gap: 14px;
+			align-items: center;
+			padding: 14px 0;
+			border-bottom: 1px solid #F0F0F0;
+		}
+		.checkout-product-item:last-child { border-bottom: none; }
+		.checkout-product-item .p-img {
+			width: 70px;
+			height: 70px;
+			border-radius: 10px;
+			background: #E8F5E9;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 32px;
+			flex-shrink: 0;
+		}
+		.checkout-product-item .p-img img { width:100%;height:100%;object-fit:cover;border-radius:10px; }
+		.checkout-product-item .p-info { flex:1; }
+		.checkout-product-item .p-info h5 { color: #333; margin-bottom: 4px; font-size: 15px; }
+		.checkout-product-item .p-info .p-meta { color: #999; font-size: 13px; }
+		.checkout-product-item .p-price { font-weight: 700; color: #E53935; font-size: 17px; white-space: nowrap; }
+		/* 金额汇总 */
+		.checkout-summary {
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			padding: 16px 0 0;
+			gap: 8px;
+		}
+		.checkout-summary .label { color: #666; font-size: 15px; }
+		.checkout-summary .amount { color: #E53935; font-size: 28px; font-weight: 700; }
+		/* 操作按钮 */
+		.checkout-actions {
+			display: flex;
+			gap: 12px;
+			justify-content: center;
+			flex-wrap: wrap;
+			margin-top: 30px;
+		}
+		.checkout-actions button {
+			padding: 14px 36px;
+			border-radius: 999px;
+			font-family: 'Arimo', sans-serif;
+			font-weight: 700;
+			font-size: 15px;
+			cursor: pointer;
+			border: none;
+			transition: all .3s;
+		}
+		.btn-pay {
+			background: #2E7D32;
+			color: #fff;
+			font-size: 16px;
+			padding: 16px 50px;
+		}
+		.btn-pay:hover { background: #1B5E20; }
+		.btn-pay:disabled { background: #BBB; cursor: not-allowed; }
+		.btn-cancel-order {
+			background: #fff;
+			color: #E53935;
+			border: 2px solid #E53935 !important;
+		}
+		.btn-cancel-order:hover { background: #FFEBEE; }
+		.btn-back-shop {
+			background: #fff;
+			color: #2E7D32;
+			border: 2px solid #2E7D32 !important;
+		}
+		.btn-back-shop:hover { background: #E8F5E9; }
+		/* Toast */
+		.toast {
+			position: fixed;
+			top: 20px;
+			left: 50%;
+			transform: translateX(-50%);
+			background: #2E7D32;
+			color: #fff;
+			padding: 14px 28px;
+			border-radius: 999px;
+			z-index: 9999;
+			opacity: 0;
+			transition: opacity 0.3s ease;
+			pointer-events: none;
+			font-family: 'Arimo', sans-serif;
+			font-weight: 700;
+		}
+		.toast.show { opacity: 1; }
+		/* 结果弹层 */
+		.result-overlay {
+			position: fixed;
+			top: 0; left: 0;
+			width: 100%; height: 100%;
+			background: rgba(0,0,0,0.5);
+			z-index: 10000;
+			display: none;
+			align-items: center;
+			justify-content: center;
+		}
+		.result-overlay.show { display: flex; }
+		.result-card {
+			background: #fff;
+			border-radius: 20px;
+			padding: 40px;
+			text-align: center;
+			max-width: 400px;
+			width: 90%;
+		}
+		.result-card .icon { font-size: 80px; margin-bottom: 16px; }
+		.result-card h3 { color: #333; margin-bottom: 8px; }
+		.result-card p { color: #666; margin-bottom: 24px; }
+		.result-card button {
+			padding: 12px 32px;
+			border-radius: 999px;
+			border: none;
+			background: #2E7D32;
+			color: #fff;
+			font-weight: 700;
+			font-size: 15px;
+			cursor: pointer;
+			font-family: 'Arimo', sans-serif;
+		}
+		.result-card button:hover { background: #1B5E20; }
+		/* Loading */
+		.loading { text-align:center; padding:40px; color:#999; font-size:15px; }
+	</style>
+</head>
+<body>
+	<div id="toast" class="toast"></div>
+	<div class="result-overlay" id="resultOverlay">
+		<div class="result-card">
+			<div class="icon" id="resultIcon">✅</div>
+			<h3 id="resultTitle">操作成功</h3>
+			<p id="resultMsg"></p>
+			<button id="resultBtn" onclick="closeResult()">确 定</button>
+		</div>
+	</div>
+
+	<header id="top">
+		<div class="wrapper">
+			<h1 class="logo"><a href="index.html">智慧农业</a></h1>
+			<nav>
+				<ul id="navigation">
+					<li><a href="index.html">返回首页</a></li>
+					<li><a href="shop.html">电商直销</a></li>
+					<li><a class="nav-cta" href="login.html">登录/注册</a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+
+	<div class="checkout-container">
+		<h2>📋 确认订单</h2>
+
+		<!-- 地址区域 -->
+		<div class="checkout-section">
+			<h4>📍 收货地址</h4>
+			<div id="addressArea">
+				<div class="loading">加载中...</div>
+			</div>
+		</div>
+
+		<!-- 商品清单 -->
+		<div class="checkout-section">
+			<h4>🛒 商品清单</h4>
+			<div id="productArea">
+				<div class="loading">加载中...</div>
+			</div>
+			<div id="summaryArea" style="display:none;">
+				<div class="checkout-summary">
+					<span class="label">合计：</span>
+					<span class="amount" id="totalAmount">¥0</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- 操作按钮 -->
+		<div class="checkout-actions">
+			<button class="btn-back-shop" onclick="goBackShop()">← 继续购物</button>
+			<button class="btn-cancel-order" id="btnCancelOrder" onclick="cancelOrder()">🗑 放弃订单</button>
+			<button class="btn-pay" id="btnPay" onclick="payOrder()">💰 去付款</button>
+		</div>
+	</div>
+
+	<footer>
+		<div class="wrapper">
+			<a class="logo" href="index.html">智慧农业</a>
+			<div class="footer-left">
+				<p class="copyright">版权所有 &copy; 2026 智慧农业集成平台</p>
+			</div>
+			<div class="clear"></div>
+		</div>
+	</footer>
+
+	<script>
+		const API_BASE = window.location.origin + '/api';
+		const token = localStorage.getItem('chase_shop_token');
+		const userStr = localStorage.getItem('chase_shop_user');
+		const user = userStr ? JSON.parse(userStr) : null;
+
+		// 读取购物车选中的商品（通过 URL 传递 cart_ids）
+		const urlParams = new URLSearchParams(window.location.search);
+		const cartIdsStr = urlParams.get('cart_ids');
+		let cartIds = [];
+		let currentOrderId = null;
+
+		if (!token) {
+			window.location.href = 'login.html?redirect=checkout.html';
+		}
+		if (cartIdsStr) {
+			cartIds = cartIdsStr.split(',').map(Number).filter(n => !isNaN(n));
+		}
+
+		if (cartIds.length === 0) {
+			setTimeout(() => {
+				window.location.href = 'shop.html';
+			}, 500);
+		}
+
+		// Toast
+		function showToast(msg) {
+			const t = document.getElementById('toast');
+			t.textContent = msg;
+			t.classList.add('show');
+			setTimeout(() => t.classList.remove('show'), 2000);
+		}
+
+		// 结果弹层
+		function showResult(icon, title, msg, callback) {
+			document.getElementById('resultIcon').textContent = icon;
+			document.getElementById('resultTitle').textContent = title;
+			document.getElementById('resultMsg').textContent = msg;
+			document.getElementById('resultOverlay').classList.add('show');
+			document.getElementById('resultBtn').onclick = function () {
+				closeResult();
+				if (callback) callback();
+			};
+		}
+		function closeResult() {
+			document.getElementById('resultOverlay').classList.remove('show');
+		}
+
+		// 加载地址
+		let addresses = [];
+		let selectedAddrId = null;
+
+		async function loadAddresses() {
+			const container = document.getElementById('addressArea');
+			try {
+				const res = await fetch(API_BASE + '/addresses', {
+					headers: { 'Authorization': 'Bearer ' + token },
+				});
+				const data = await res.json();
+				if (data.code === 200 && data.data.length > 0) {
+					addresses = data.data;
+					// 优先选默认地址
+					const defaultAddr = addresses.find(a => a.is_default) || addresses[0];
+					selectedAddrId = defaultAddr.id;
+					container.innerHTML = addresses.map(a => `
+						<div class="address-select-item ${a.id === selectedAddrId ? 'selected' : ''}" onclick="selectAddress(${a.id})">
+							<input type="radio" name="address" value="${a.id}" ${a.id === selectedAddrId ? 'checked' : ''}>
+							<div class="addr-info">
+								<div class="name">${a.receiver_name}<span class="phone">${a.receiver_phone}</span></div>
+								<div class="full">${a.province}${a.city}${a.district} ${a.detail}</div>
+								${a.is_default ? '<span style="display:inline-block;background:#E8F5E9;color:#2E7D32;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;margin-top:6px;">默认</span>' : ''}
+							</div>
+						</div>
+					`).join('');
+				} else {
+					container.innerHTML = '<div class="no-address">暂无收货地址，请先去 <a href="user-center.html">个人中心</a> 添加地址</div>';
+				}
+			} catch (err) {
+				container.innerHTML = '<div class="no-address" style="color:#E53935;">加载失败</div>';
+			}
+		}
+
+		function selectAddress(id) {
+			selectedAddrId = id;
+			document.querySelectorAll('.address-select-item').forEach(el => el.classList.remove('selected'));
+			document.querySelector(`.address-select-item input[value="${id}"]`).parentElement.classList.add('selected');
+			document.querySelector(`.address-select-item input[value="${id}"]`).checked = true;
+		}
+
+		// 加载购物车商品
+		let cartProducts = [];
+		let totalAmount = 0;
+
+		async function loadCartProducts() {
+			const container = document.getElementById('productArea');
+			try {
+				const res = await fetch(API_BASE + '/cart', {
+					headers: { 'Authorization': 'Bearer ' + token },
+				});
+				const data = await res.json();
+				if (data.code === 200) {
+					const allItems = data.data;
+					cartProducts = allItems.filter(item => cartIds.includes(item.id));
+					if (cartProducts.length === 0) {
+						container.innerHTML = '<div class="no-address">购物车商品已失效，请返回 <a href="shop.html">商城</a></div>';
+						return;
+					}
+					container.innerHTML = cartProducts.map(p => {
+						const subtotal = p.price * p.quantity;
+						return `
+						<div class="checkout-product-item">
+							<div class="p-img">${p.product_image ? `<img src="${p.product_image}" alt="${p.product_name}">` : '🍑'}</div>
+							<div class="p-info">
+								<h5>${p.product_name}</h5>
+								<div class="p-meta">单价 ¥${p.price} × ${p.quantity}份</div>
+							</div>
+							<div class="p-price">¥${subtotal.toFixed(2)}</div>
+						</div>`;
+					}).join('');
+					totalAmount = cartProducts.reduce((sum, p) => sum + p.price * p.quantity, 0);
+					document.getElementById('totalAmount').textContent = '¥' + totalAmount.toFixed(2);
+					document.getElementById('summaryArea').style.display = 'block';
+				} else {
+					container.innerHTML = '<div class="no-address">加载失败</div>';
+				}
+			} catch (err) {
+				container.innerHTML = '<div class="no-address" style="color:#E53935;">加载失败</div>';
+			}
+		}
+
+		// 创建订单（先下单，不支付）
+		async function createOrder() {
+			if (!selectedAddrId) {
+				showToast('请选择收货地址');
+				return null;
+			}
+			try {
+				const res = await fetch(API_BASE + '/orders', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer ' + token,
+					},
+					body: JSON.stringify({
+						address_id: selectedAddrId,
+						cart_ids: cartIds,
+					}),
+				});
+				const data = await res.json();
+				if (data.code === 200) {
+					currentOrderId = data.data.order_id;
+					return data.data;
+				} else {
+					showToast(data.msg || '下单失败');
+					return null;
+				}
+			} catch (err) {
+				showToast('网络错误');
+				return null;
+			}
+		}
+
+		// 去付款
+		async function payOrder() {
+			if (!selectedAddrId) {
+				showToast('请选择收货地址');
+				return;
+			}
+			if (cartProducts.length === 0) {
+				showToast('商品已失效');
+				return;
+			}
+
+			document.getElementById('btnPay').disabled = true;
+			document.getElementById('btnPay').textContent = '处理中...';
+			document.getElementById('btnCancelOrder').disabled = true;
+
+			// 先创建订单
+			const orderData = await createOrder();
+			document.getElementById('btnPay').disabled = false;
+			document.getElementById('btnPay').textContent = '💰 去付款';
+			document.getElementById('btnCancelOrder').disabled = false;
+
+			if (!orderData) return;
+
+			// 尝试支付
+			try {
+				const res = await fetch(API_BASE + '/orders/' + orderData.order_id + '/pay', {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer ' + token,
+					},
+				});
+				const payData = await res.json();
+				if (payData.code === 200) {
+					showResult('✅', '支付成功', `订单号：${orderData.order_no}\n金额：¥${orderData.total_amount}\n我们将尽快为您发货！`, () => {
+						window.location.href = 'user-center.html';
+					});
+				} else {
+					showToast(payData.msg || '支付失败，订单已保留');
+				}
+			} catch (err) {
+				showToast('支付请求失败，订单已保留');
+			}
+		}
+
+		// 放弃订单（如果已下单则取消，否则直接返回）
+		function cancelOrder() {
+			if (!currentOrderId) {
+				// 还没创建订单，直接回商城
+				window.location.href = 'shop.html';
+				return;
+			}
+			if (!confirm('确定放弃此订单？商品将恢复库存。')) return;
+
+			fetch(API_BASE + '/orders/' + currentOrderId + '/cancel', {
+				method: 'PUT',
+				headers: { 'Authorization': 'Bearer ' + token },
+			})
+				.then(r => r.json())
+				.then(data => {
+					if (data.code === 200) {
+						showResult('🗑', '订单已取消', '商品已恢复库存，欢迎再次选购。', () => {
+							window.location.href = 'shop.html';
+						});
+					} else {
+						showToast(data.msg || '取消失败');
+					}
+				})
+				.catch(() => showToast('操作失败'));
+		}
+
+		// 继续购物
+		function goBackShop() {
+			window.location.href = 'shop.html';
+		}
+
+		// 初始化
+		loadAddresses();
+		loadCartProducts();
+	</script>
+</body>
+</html>
