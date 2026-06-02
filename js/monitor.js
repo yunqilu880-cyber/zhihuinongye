@@ -434,26 +434,86 @@
 		updateButtonStates();
 	}
 
-	// ============ Demo Mode ============
+	// ============ Demo Mode - 真实梅园数据模拟 ============
+	// 模拟浙江余姚地区 6 月杨梅园数据
+	// 日变化规律：清晨凉爽湿润 → 正午高温干燥 → 夜间降温回湿
+
+	/** 根据小时返回基准温湿度（模拟夏季晴天） */
+	function getBaseValue(hour) {
+		// 温度曲线：凌晨最低(~18°C)，午后最高(~33°C)
+		// 使用正弦波模拟日照变化
+		const tempPeak = 33;     // 午后最高温
+		const tempBase = 18;     // 凌晨最低温
+		// 峰值在 14:00
+		const tempSin = Math.sin((hour - 8) / 14 * Math.PI);
+		const temperature = tempBase + (tempPeak - tempBase) * Math.max(0, tempSin);
+
+		// 湿度曲线：与温度相反，清晨最高(~78%)，午后最低(~35%)
+		const humHigh = 78;       // 清晨高湿
+		const humLow = 35;        // 午后低湿
+		const humidity = humLow + (humHigh - humLow) * Math.max(0, 1 - Math.abs((hour - 6) / 12));
+		// 夜间额外回湿
+		const nightBoost = (hour < 6 || hour >= 20) ? 8 : 0;
+
+		return {
+			temperature: Math.round(temperature * 10) / 10,
+			humidity: Math.round((humidity + nightBoost) * 10) / 10
+		};
+	}
+
+	/** 预加载 24 小时历史数据到图表 */
+	function preloadHistory() {
+		const now = new Date();
+		// 从 24 小时前到现在，每 10 分钟一个数据点 = 144 个点
+		const totalPoints = Math.min(144, MAX_HISTORY);
+		const intervalSeconds = (24 * 3600) / totalPoints;
+
+		for (let i = 0; i < totalPoints; i++) {
+			const pointTime = new Date(now.getTime() - (totalPoints - i) * intervalSeconds * 1000);
+			const hour = pointTime.getHours() + pointTime.getMinutes() / 60;
+			const base = getBaseValue(hour);
+			// 加 ±5% 随机抖动模拟自然波动
+			const jitterH = (Math.random() - 0.5) * 5;
+			const jitterT = (Math.random() - 0.5) * 2;
+			const h = Math.round((base.humidity + jitterH) * 10) / 10;
+			const t = Math.round((base.temperature + jitterT) * 10) / 10;
+			const ts = Math.floor(pointTime.getTime() / 1000);
+			const timeStr = pointTime.toLocaleTimeString('zh-CN', { hour12: false });
+
+			humidityHistory.push(h);
+			temperatureHistory.push(t);
+			timeLabels.push(timeStr);
+			addLogEntry(h, t, ts);
+		}
+	}
+
 	function startDemo() {
 		activeConnection = 'demo';
 		updateConnectionStatus('demo');
 		updateButtonStates();
-		addLogEntryRaw('🎮 演示模式启动 - 使用模拟数据');
+		addLogEntryRaw('🎮 演示模式启动 - 模拟余姚杨梅园 6月数据');
 
-		// Generate initial values
-		let baseHumidity = 45 + Math.random() * 30;
-		let baseTemperature = 18 + Math.random() * 15;
+		// 预加载历史数据
+		preloadHistory();
+
+		// 设定当前时间为午后 14:00 左右的基准（让演示效果更好）
+		const now = new Date();
+		const currentHour = now.getHours() + now.getMinutes() / 60;
+		let simHour = currentHour;
 
 		demoInterval = setInterval(function() {
-			// Add random walk
-			baseHumidity += (Math.random() - 0.5) * 4;
-			baseHumidity = Math.max(5, Math.min(95, baseHumidity));
-			baseTemperature += (Math.random() - 0.5) * 1.5;
-			baseTemperature = Math.max(2, Math.min(45, baseTemperature));
+			// 模拟时间推进（每 1 秒推进 5 分钟 = 加速 300 倍）
+			simHour += 5 / 60;
+			if (simHour >= 24) simHour -= 24;
 
-			const h = Math.round(baseHumidity * 10) / 10;
-			const t = Math.round(baseTemperature * 10) / 10;
+			const base = getBaseValue(simHour);
+
+			// 随机抖动模拟传感器噪声
+			const jitterH = (Math.random() - 0.5) * 4;
+			const jitterT = (Math.random() - 0.5) * 1.0;
+
+			const h = Math.round(Math.max(5, Math.min(95, base.humidity + jitterH)) * 10) / 10;
+			const t = Math.round(Math.max(2, Math.min(45, base.temperature + jitterT)) * 10) / 10;
 			const ts = Math.floor(Date.now() / 1000);
 
 			updateSensorData(h, t, ts);
@@ -518,12 +578,14 @@
 	startDemoBtn.addEventListener('click', startDemo);
 	stopDemoBtn.addEventListener('click', stopDemo);
 	clearLogBtn.addEventListener('click', clearLog);
-	refreshBtn.addEventListener('click', function(e) {
-		e.preventDefault();
-		if (activeConnection) {
-			addLogEntryRaw('🔄 手动刷新 - 等待下一帧数据...');
-		}
-	});
+	if (refreshBtn) {
+		refreshBtn.addEventListener('click', function(e) {
+			e.preventDefault();
+			if (activeConnection) {
+				addLogEntryRaw('🔄 手动刷新 - 等待下一帧数据...');
+			}
+		});
+	}
 
 	// Cleanup on page unload
 	window.addEventListener('beforeunload', function() {
