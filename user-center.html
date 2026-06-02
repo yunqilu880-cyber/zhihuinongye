@@ -268,6 +268,17 @@
 			<input type="text" id="profileName" placeholder="请输入昵称">
 		</div>
 		<button onclick="updateProfile()" class="auth-submit">保存修改</button>
+		<hr style="margin:24px 0;border-color:#E0E0E0;">
+		<h4 style="color:#2E7D32;margin-bottom:12px;">修改密码</h4>
+		<div class="form-group">
+			<label>原密码</label>
+			<input type="password" id="oldPassword" placeholder="请输入原密码">
+		</div>
+		<div class="form-group">
+			<label>新密码</label>
+			<input type="password" id="newPassword" placeholder="请输入新密码">
+		</div>
+		<button onclick="changePassword()" class="auth-submit" style="background:#F57C00;border-color:#F57C00;">修改密码</button>
 	</div>
 
 	<footer>
@@ -483,6 +494,26 @@
 				} else {
 					showToast(data.msg);
 				}
+			} catch (err) { showToast('网络错误'); }
+		}
+
+		// ===== 修改密码 =====
+		async function changePassword() {
+			const oldPassword = document.getElementById('oldPassword').value.trim();
+			const newPassword = document.getElementById('newPassword').value.trim();
+			if (!oldPassword || !newPassword) return showToast('请输入原密码和新密码');
+			try {
+				const res = await fetch(API_BASE + '/users/password', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+					body: JSON.stringify({ oldPassword, newPassword }),
+				});
+				const data = await res.json();
+				if (data.code === 200) {
+					showToast('密码修改成功');
+					document.getElementById('oldPassword').value = '';
+					document.getElementById('newPassword').value = '';
+				} else { showToast(data.msg); }
 			} catch (err) { showToast('网络错误'); }
 		}
 

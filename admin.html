@@ -103,6 +103,14 @@
 		.badge-shipped { background: #E8F5E9; color: #388E3C; }
 		.badge-completed { background: #E8F5E9; color: #2E7D32; }
 		.badge-cancelled { background: #F5F5F5; color: #999; }
+		.badge-on { background: #E8F5E9; color: #2E7D32; }
+		.badge-off { background: #F5F5F5; color: #999; }
+		.form-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+		.form-row .field { flex: 1; min-width: 120px; }
+		.form-row .field label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 700; }
+		.form-row .field input, .form-row .field select, .form-row .field textarea { width: 100%; padding: 8px 12px; border: 2px solid #E0E0E0; border-radius: 8px; font-size: 13px; outline: none; box-sizing: border-box; font-family: 'Arimo',sans-serif; }
+		.form-row .field input:focus, .form-row .field select:focus, .form-row .field textarea:focus { border-color: #2E7D32; }
+		.form-row .field textarea { resize: vertical; min-height: 60px; }
 		.btn-sm {
 			padding: 5px 14px;
 			border-radius: 999px;
@@ -209,7 +217,9 @@
 		<div class="admin-sidebar">
 			<a href="#" class="active" data-page="dashboard" onclick="switchPage('dashboard')">📊 数据概览</a>
 			<a href="#" data-page="users" onclick="switchPage('users')">👥 用户管理</a>
-			<a href="#" data-page="orders" onclick="switchPage('orders')">📦 订单管理</a>
+		<a href="#" data-page="products" onclick="switchPage('products')">📦 商品管理</a>
+		<a href="#" data-page="categories" onclick="switchPage('categories')">🏷️ 分类管理</a>
+		<a href="#" data-page="orders" onclick="switchPage('orders')">📋 订单管理</a>
 		</div>
 		<div class="admin-main" id="mainContent">
 			<div class="empty">加载中...</div>
@@ -241,9 +251,11 @@
 		function switchPage(page) {
 			document.querySelectorAll('.admin-sidebar a').forEach(a => a.classList.remove('active'));
 			document.querySelector(`[data-page="${page}"]`).classList.add('active');
-			if (page === 'dashboard') loadDashboard();
-			else if (page === 'users') loadUserList();
-			else if (page === 'orders') loadOrderList();
+		if (page === 'dashboard') loadDashboard();
+		else if (page === 'users') loadUserList();
+		else if (page === 'products') loadProductList();
+		else if (page === 'categories') loadCategoryList();
+		else if (page === 'orders') loadOrderList();
 		}
 
 		// 通用请求
@@ -260,15 +272,13 @@
 				const data = await api('/admin/stats');
 				if (data.code === 200) {
 					const s = data.data;
-					container.innerHTML = `
-						<h3 class="page-title">📊 数据概览</h3>
-						<div class="stats-grid">
-							<div class="stat-card"><div class="value">${s.userCount}</div><div class="label">注册用户</div></div>
-							<div class="stat-card"><div class="value">${s.productCount}</div><div class="label">商品数量</div></div>
-							<div class="stat-card"><div class="value">${s.orderCount}</div><div class="label">订单总数</div></div>
-							<div class="stat-card"><div class="value">¥${Number(s.totalRevenue).toFixed(2)}</div><div class="label">总营收（已付款）</div></div>
-							<div class="stat-card"><div class="value">${s.pendingOrders}</div><div class="label">待处理订单</div></div>
-						</div>`;
+					container.innerHTML = '<h3 class="page-title">📊 数据概览</h3><div class="stats-grid">' +
+						'<div class="stat-card"><div class="value">' + s.userCount + '</div><div class="label">注册用户</div></div>' +
+						'<div class="stat-card"><div class="value">' + s.productCount + '</div><div class="label">商品数量</div></div>' +
+						'<div class="stat-card"><div class="value">' + s.orderCount + '</div><div class="label">订单总数</div></div>' +
+						'<div class="stat-card"><div class="value">¥' + Number(s.totalRevenue).toFixed(2) + '</div><div class="label">总营收（已付款）</div></div>' +
+						'<div class="stat-card"><div class="value">' + s.pendingOrders + '</div><div class="label">待处理订单</div></div>' +
+						'</div>';
 				} else {
 					container.innerHTML = `<div class="empty" style="color:#E53935;">${data.msg || '无权限访问管理后台'}</div>`;
 				}
@@ -384,7 +394,65 @@
 			else showToast(data.msg);
 		}
 
-		// ========== 订单管理 ==========
+// ========== 商品管理 ==========
+let productPage=1,productKeyword='',productCategory='',productOnSale='';
+async function loadProductList(){
+	const c=document.getElementById('mainContent');
+	c.innerHTML='<h3 class="page-title">📦 商品管理</h3><div class="search-row"><input id="productSearch" placeholder="搜索商品名/描述" value="'+productKeyword+'"><select id="productCategoryFilter"><option value="">全部分类</option></select><select id="productOnSaleFilter"><option value="">全部状态</option><option value="1">上架中</option><option value="0">已下架</option></select><button onclick="searchProducts()">搜索</button><button onclick="showProductForm()" style="background:#F57C00">+ 添加商品</button></div><div class="table-container"><div id="productTable"><div class="empty">加载中...</div></div></div><div class="pagination" id="productPager"></div>';
+	loadCategoryOptions();
+	fetchProducts();
+}
+async function loadCategoryOptions(){
+	try{const d=await api('/admin/categories');if(d.code===200){const s=document.getElementById('productCategoryFilter');d.data.forEach(c=>{s.innerHTML+='<option value="'+c.id+'">'+c.icon+' '+c.name+'</option>'});if(productCategory)s.value=productCategory}}catch(e){}
+}
+function searchProducts(){productKeyword=document.getElementById('productSearch').value.trim();productCategory=document.getElementById('productCategoryFilter').value;productOnSale=document.getElementById('productOnSaleFilter').value;productPage=1;fetchProducts()}
+async function fetchProducts(){
+	try{const p=new URLSearchParams({page:productPage,pageSize:15});if(productKeyword)p.append('keyword',productKeyword);if(productCategory)p.append('category_id',productCategory);if(productOnSale!=='')p.append('is_on_sale',productOnSale);const d=await api('/admin/products?'+p.toString());if(d.code===200)renderProducts(d.data);else document.getElementById('productTable').innerHTML='<div class="empty" style="color:#E53935;">'+d.msg+'</div>'}catch(e){document.getElementById('productTable').innerHTML='<div class="empty" style="color:#E53935;">加载失败</div>'}
+}
+function renderProducts(r){
+	const c=document.getElementById('productTable');
+	if(r.list.length===0){c.innerHTML='<div class="empty">暂无商品</div>';document.getElementById('productPager').innerHTML='';return}
+	c.innerHTML='<table><thead><tr><th>ID</th><th>名称</th><th>分类</th><th>价格</th><th>库存</th><th>销量</th><th>状态</th><th>操作</th></tr></thead><tbody>'+r.list.map(p=>'<tr><td>'+p.id+'</td><td>'+p.name+'</td><td>'+(p.category_name||'-')+'</td><td>¥'+p.price+'</td><td>'+p.stock+'</td><td>'+p.sales+'</td><td><span class="badge '+(p.is_on_sale?'badge-on':'badge-off')+'">'+(p.is_on_sale?'上架':'下架')+'</span></td><td><button class="btn-sm btn-outline" onclick="showProductForm('+p.id+')">编辑</button> <button class="btn-sm '+(p.is_on_sale?'btn-warning':'btn-success')+'" onclick="toggleProduct('+p.id+')">'+(p.is_on_sale?'下架':'上架')+'</button> <button class="btn-sm btn-danger" onclick="deleteProduct('+p.id+')">删除</button></td></tr>').join('')+'</tbody></table>';
+	let pg='';pg+='<button onclick="goProductPage('+(r.page-1)+')" '+(r.page<=1?'disabled':'')+'>‹</button>';
+	for(let i=1;i<=r.totalPages;i++)pg+='<button class="'+(i===r.page?'active':'')+'" onclick="goProductPage('+i+')">'+i+'</button>';
+	pg+='<button onclick="goProductPage('+(r.page+1)+')" '+(r.page>=r.totalPages?'disabled':'')+'>›</button>';
+	document.getElementById('productPager').innerHTML=pg
+}
+function goProductPage(p){productPage=p;fetchProducts()}
+async function showProductForm(editId){
+	let title='添加商品',p={name:'',description:'',price:'',original_price:'',stock:'',image:'',category_id:'',badge:'',weight:'',specs:'',is_featured:0,is_on_sale:1};
+	if(editId){title='编辑商品';const d=await api('/admin/products?pageSize=200');if(d.code===200){const found=d.data.list.find(x=>x.id===editId);if(found)p=found}}
+	try{const cd=await api('/admin/categories');const catOpts=cd.code===200?cd.data.map(c=>'<option value="'+c.id+'"'+(p.category_id==c.id?' selected':'')+'>'+c.icon+' '+c.name+'</option>').join(''):'';
+	document.getElementById('modalContent').innerHTML='<button class="close-btn" onclick="closeModal()">✕</button><h3>'+title+'</h3><form id="productForm"><div class="form-row"><div class="field"><label>商品名称 *</label><input name="name" value="'+p.name+'" required></div><div class="field"><label>分类</label><select name="category_id"><option value="">无</option>'+catOpts+'</select></div></div><div class="form-row"><div class="field"><label>售价 *</label><input name="price" type="number" step="0.01" value="'+p.price+'"></div><div class="field"><label>原价</label><input name="original_price" type="number" step="0.01" value="'+(p.original_price||'')+'"></div><div class="field"><label>库存</label><input name="stock" type="number" value="'+(p.stock||0)+'"></div></div><div class="form-row"><div class="field"><label>角标</label><input name="badge" value="'+(p.badge||'')+'"></div><div class="field"><label>规格</label><input name="weight" value="'+(p.weight||'')+'"></div><div class="field"><label>推荐</label><select name="is_featured"><option value="0"'+(p.is_featured==0?' selected':'')+'>否</option><option value="1"'+(p.is_featured==1?' selected':'')+'>是</option></select></div></div><div class="form-row"><div class="field"><label>描述</label><textarea name="description" rows="2">'+(p.description||'')+'</textarea></div></div><div class="form-row"><div class="field"><label>规格说明（每行一条）</label><textarea name="specs" rows="3">'+(p.specs||'')+'</textarea></div></div><button type="submit" class="btn-sm btn-success" style="padding:10px 24px;font-size:14px;">保 存</button>'+(editId?'<button type="button" class="btn-sm btn-danger" style="margin-left:8px;padding:10px 24px;font-size:14px;" onclick="deleteProduct('+editId+');closeModal()">删 除</button>':'')+'</form>';
+	document.getElementById('productForm').addEventListener('submit',async function(e){e.preventDefault();const fd=new FormData(this);const body={};for(let[k,v] of fd)body[k]=v;body.is_featured=parseInt(body.is_featured);body.category_id=body.category_id||null;body.price=parseFloat(body.price);body.original_price=body.original_price?parseFloat(body.original_price):null;body.stock=parseInt(body.stock);const url=editId?'/admin/products/'+editId:'/admin/products';const method=editId?'PUT':'POST';const r=await api(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.code===200){showToast(title+'成功');closeModal();fetchProducts()}else showToast(r.msg)});
+	document.getElementById('modalOverlay').classList.add('show')}catch(e){showToast('加载失败')}
+}
+async function toggleProduct(id){const d=await api('/admin/products/'+id+'/toggle',{method:'PUT'});if(d.code===200){showToast(d.msg);fetchProducts()}else showToast(d.msg)}
+async function deleteProduct(id){if(!confirm('确认删除此商品？'))return;const d=await api('/admin/products/'+id,{method:'DELETE'});if(d.code===200){showToast('商品已删除');fetchProducts()}else showToast(d.msg)}
+
+// ========== 分类管理 ==========
+async function loadCategoryList(){
+	const c=document.getElementById('mainContent');
+	c.innerHTML='<h3 class="page-title">🏷️ 分类管理</h3><button class="btn-sm btn-warning" onclick="showCategoryForm()" style="padding:8px 20px;margin-bottom:12px;">+ 添加分类</button><div class="table-container"><div id="categoryTable"><div class="empty">加载中...</div></div></div>';
+	fetchCategories()
+}
+async function fetchCategories(){
+	try{const d=await api('/admin/categories');if(d.code===200){const tbl=document.getElementById('categoryTable');if(d.data.length===0){tbl.innerHTML='<div class="empty">暂无分类</div>';return}
+	tbl.innerHTML='<table><thead><tr><th>ID</th><th>图标</th><th>名称</th><th>排序</th><th>操作</th></tr></thead><tbody>'+d.data.map(c=>'<tr><td>'+c.id+'</td><td>'+c.icon+'</td><td>'+c.name+'</td><td>'+c.sort_order+'</td><td><button class="btn-sm btn-outline" onclick="showCategoryForm('+c.id+')">编辑</button> <button class="btn-sm btn-danger" onclick="deleteCategory('+c.id+')">删除</button></td></tr>').join('')+'</tbody></table>'}else tbl.innerHTML='<div class="empty" style="color:#E53935;">'+d.msg+'</div>'}catch(e){document.getElementById('categoryTable').innerHTML='<div class="empty" style="color:#E53935;">加载失败</div>'}
+}
+function showCategoryForm(editId){
+	let title='添加分类',c={name:'',icon:'',sort_order:0};
+	if(editId){title='编辑分类';api('/admin/categories').then(d=>{if(d.code===200){const f=d.data.find(x=>x.id===editId);if(f)c=f;renderCatForm()}}).catch(()=>{});renderCatForm();return}
+	renderCatForm();
+	function renderCatForm(){
+		document.getElementById('modalContent').innerHTML='<button class="close-btn" onclick="closeModal()">✕</button><h3>'+title+'</h3><form id="catForm"><div class="form-row"><div class="field"><label>分类名称</label><input id="catName" value="'+c.name+'" required></div><div class="field"><label>图标（emoji）</label><input id="catIcon" value="'+c.icon+'"></div><div class="field"><label>排序</label><input id="catSort" type="number" value="'+c.sort_order+'"></div></div><button type="submit" class="btn-sm btn-success" style="padding:10px 24px;font-size:14px;">保 存</button></form>';
+		document.getElementById('catForm').addEventListener('submit',async function(e){e.preventDefault();const body={name:document.getElementById('catName').value.trim(),icon:document.getElementById('catIcon').value.trim(),sort_order:parseInt(document.getElementById('catSort').value)||0};if(!body.name)return showToast('名称必填');const url=editId?'/admin/categories/'+editId:'/admin/categories';const method=editId?'PUT':'POST';const r=await api(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.code===200){showToast(title+'成功');closeModal();fetchCategories()}else showToast(r.msg)});
+		document.getElementById('modalOverlay').classList.add('show')
+	}
+}
+async function deleteCategory(id){if(!confirm('确认删除此分类？'))return;const d=await api('/admin/categories/'+id,{method:'DELETE'});if(d.code===200){showToast('分类已删除');fetchCategories()}else showToast(d.msg)}
+
+// ========== 订单管理 ==========
 		let orderPage = 1;
 		let orderStatus = '';
 		let orderKeyword = '';

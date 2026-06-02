@@ -134,4 +134,29 @@ router.put('/profile', authMiddleware, async (req, res) => {
   }
 });
 
+// PUT /api/users/password - 修改密码
+router.put('/password', authMiddleware, [
+  body('oldPassword').notEmpty().withMessage('请输入原密码'),
+  body('newPassword').isLength({ min: 1 }).withMessage('请输入新密码'),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ code: 400, msg: errors.array()[0].msg });
+  
+  const { oldPassword, newPassword } = req.body;
+  try {
+    const [rows] = await pool.query('SELECT password FROM users WHERE id = ?', [req.userId]);
+    if (rows.length === 0) return res.status(404).json({ code: 404, msg: '用户不存在' });
+    
+    const isMatch = await bcrypt.compare(oldPassword, rows[0].password);
+    if (!isMatch) return res.status(400).json({ code: 400, msg: '原密码错误' });
+    
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashed, req.userId]);
+    res.json({ code: 200, msg: '密码修改成功' });
+  } catch (err) {
+    console.error('修改密码失败:', err);
+    res.status(500).json({ code: 500, msg: '服务器错误' });
+  }
+});
+
 module.exports = router;

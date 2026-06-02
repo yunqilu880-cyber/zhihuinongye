@@ -568,6 +568,10 @@
 		<div class="wrapper">
 			<h2>产地直供</h2>
 			<p class="subtitle">余姚杨梅 · 当天采摘 · 产地直发</p>
+			<div class="search-bar">
+				<input type="text" id="shopSearchInput" placeholder="搜索商品名称或描述..." onkeydown="if(event.key==='Enter')searchShop()">
+				<button onclick="searchShop()">🔍 搜索</button>
+			</div>
 		</div>
 	</section>
 
@@ -738,7 +742,21 @@
 		// 分页状态
 		let currentCategory = '0';
 		let currentPage = 1;
+		let currentKeyword = '';
 		const PAGE_SIZE = 12;
+
+		// 搜索商品
+		function searchShop() {
+			currentKeyword = document.getElementById('shopSearchInput').value.trim();
+			currentPage = 1;
+			// 搜索时重置分类到"全部"
+			currentCategory = '0';
+			document.querySelectorAll('.category-tab').forEach(b => {
+				b.classList.remove('active');
+				if (b.dataset.category === '0') b.classList.add('active');
+			});
+			doFilter();
+		}
 
 		// 筛选商品（分类切换时调用，会重置页码）
 		function filterProducts(categoryId) {
@@ -748,12 +766,20 @@
 		}
 		// 执行筛选 + 渲染
 		function doFilter() {
-			if (!currentCategory || currentCategory === '0') {
-				renderProducts(allProducts);
-			} else {
-				const filtered = allProducts.filter(p => p.category_id === parseInt(currentCategory));
-				renderProducts(filtered);
+			let list = allProducts;
+			// 按分类筛选
+			if (currentCategory && currentCategory !== '0') {
+				list = list.filter(p => p.category_id === parseInt(currentCategory));
 			}
+			// 按关键词搜索
+			if (currentKeyword) {
+				const kw = currentKeyword.toLowerCase();
+				list = list.filter(p => 
+					(p.name && p.name.toLowerCase().includes(kw)) ||
+					(p.description && p.description.toLowerCase().includes(kw))
+				);
+			}
+			renderProducts(list);
 		}
 
 		// 渲染商品卡片
@@ -810,7 +836,7 @@
 			renderPagination(totalPages, products.length);
 		}
 
-		// 分页控件
+		// 分页控件（最多显示10个页码，支持输入跳转）
 		function renderPagination(totalPages, totalCount) {
 			let pager = document.getElementById('pagination');
 			if (!pager) {
@@ -822,16 +848,41 @@
 			}
 			if (totalPages <= 1) { pager.innerHTML = ''; return; }
 
+			// 计算显示范围：最多10个按钮，当前页居中
+			let startPage = Math.max(1, currentPage - 4);
+			let endPage = Math.min(totalPages, startPage + 9);
+			if (endPage - startPage < 9) { startPage = Math.max(1, endPage - 9); }
+
 			let btns = '';
-			btns += `<button onclick="goPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>‹ 上一页</button>`;
-			for (let i = 1; i <= totalPages; i++) {
+			btns += `<button onclick="goPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>‹</button>`;
+			if (startPage > 1) {
+				btns += `<button onclick="goPage(1)">1</button>`;
+				if (startPage > 2) btns += '<span style="padding:8px 4px;color:#999;">…</span>';
+			}
+			for (let i = startPage; i <= endPage; i++) {
 				btns += `<button class="${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
 			}
-			btns += `<button onclick="goPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>下一页 ›</button>`;
+			if (endPage < totalPages) {
+				if (endPage < totalPages - 1) btns += '<span style="padding:8px 4px;color:#999;">…</span>';
+				btns += `<button onclick="goPage(${totalPages})">${totalPages}</button>`;
+			}
+			btns += `<button onclick="goPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>`;
+			btns += ` <input type="number" id="jumpPageInput" min="1" max="${totalPages}" placeholder="${currentPage}" onkeydown="if(event.key==='Enter')jumpToPage()" style="width:60px;padding:6px 8px;border:2px solid #C8E6C9;border-radius:8px;text-align:center;font-size:14px;font-weight:700;color:#2E7D32;outline:none;">`;
+			btns += `<button onclick="jumpToPage()" style="padding:8px 12px;">跳转</button>`;
 			pager.innerHTML = btns;
 		}
 
 		function goPage(page) { currentPage = page; doFilter(); window.scrollTo({top: 400, behavior: 'smooth'}); }
+
+		function jumpToPage() {
+			const input = document.getElementById('jumpPageInput');
+			const page = parseInt(input.value);
+			if (!isNaN(page) && page >= 1 && page <= input.max) {
+				goPage(page);
+			} else {
+				showToast('请输入有效的页码');
+			}
+		}
 
 		// 加入购物车
 		async function addToCart(productId, btn) {

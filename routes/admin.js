@@ -210,6 +210,113 @@ router.put('/orders/:id/status', async (req, res) => {
   }
 });
 
+// ========== 商品管理 ==========
+
+// GET /api/admin/products - 全部商品列表
+router.get('/products', async (req, res) => {
+  const { page = 1, pageSize = 20, keyword, category_id, is_on_sale } = req.query;
+  const offset = (parseInt(page) - 1) * parseInt(pageSize);
+  try {
+    let where = 'WHERE 1=1';
+    let params = [];
+    if (keyword) { where += ' AND (p.name LIKE ? OR p.description LIKE ?)'; const kw = `%${keyword}%`; params.push(kw, kw); }
+    if (category_id) { where += ' AND p.category_id = ?'; params.push(category_id); }
+    if (is_on_sale !== undefined && is_on_sale !== '') { where += ' AND p.is_on_sale = ?'; params.push(parseInt(is_on_sale)); }
+    
+    const [count] = await pool.query(`SELECT COUNT(*) as total FROM products p ${where}`, params);
+    const total = count[0].total;
+
+    const [rows] = await pool.query(
+      `SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id ${where} ORDER BY p.id DESC LIMIT ? OFFSET ?`,
+      [...params, parseInt(pageSize), offset]
+    );
+    res.json({ code: 200, data: { list: rows, total, page: parseInt(page), pageSize: parseInt(pageSize), totalPages: Math.ceil(total / parseInt(pageSize)) } });
+  } catch (err) { console.error('获取商品列表失败:', err); res.status(500).json({ code: 500, msg: '服务器错误' }); }
+});
+
+// POST /api/admin/products - 新增商品
+router.post('/products', async (req, res) => {
+  const { name, description, price, original_price, stock, image, category_id, badge, weight, specs, is_featured, is_on_sale } = req.body;
+  if (!name || !price) return res.status(400).json({ code: 400, msg: '名称和价格必填' });
+  try {
+    const [result] = await pool.query(
+      `INSERT INTO products (name, description, price, original_price, stock, image, category_id, badge, weight, specs, is_featured, is_on_sale) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [name, description||'', price, original_price||null, stock||0, image||'', category_id||null, badge||'', weight||'', specs||'', is_featured||0, is_on_sale!==undefined?is_on_sale:1]
+    );
+    res.json({ code: 200, msg: '商品添加成功', data: { id: result.insertId } });
+  } catch (err) { console.error('添加商品失败:', err); res.status(500).json({ code: 500, msg: '服务器错误' }); }
+});
+
+// PUT /api/admin/products/:id - 更新商品
+router.put('/products/:id', async (req, res) => {
+  const { id } = req.params;
+  const fields = ['name','description','price','original_price','stock','image','category_id','badge','weight','specs','is_featured','is_on_sale'];
+  const updates = [];
+  const values = [];
+  fields.forEach(f => { if (req.body[f] !== undefined) { updates.push(`${f}=?`); values.push(req.body[f]); } });
+  if (updates.length === 0) return res.status(400).json({ code: 400, msg: '无更新字段' });
+  try {
+    await pool.query(`UPDATE products SET ${updates.join(',')} WHERE id=?`, [...values, id]);
+    res.json({ code: 200, msg: '商品更新成功' });
+  } catch (err) { console.error('更新商品失败:', err); res.status(500).json({ code: 500, msg: '服务器错误' }); }
+});
+
+// DELETE /api/admin/products/:id - 删除商品
+router.delete('/products/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM products WHERE id=?', [req.params.id]);
+    res.json({ code: 200, msg: '商品已删除' });
+  } catch (err) { console.error('删除商品失败:', err); res.status(500).json({ code: 500, msg: '服务器错误' }); }
+});
+
+// PUT /api/admin/products/:id/toggle - 上下架
+router.put('/products/:id/toggle', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT is_on_sale FROM products WHERE id=?', [req.params.id]);
+    if (rows.length===0) return res.status(404).json({ code:404, msg:'商品不存在' });
+    const newStatus = rows[0].is_on_sale ? 0 : 1;
+    await pool.query('UPDATE products SET is_on_sale=? WHERE id=?', [newStatus, req.params.id]);
+    res.json({ code:200, msg: newStatus?'已上架':'已下架', data:{ is_on_sale: newStatus } });
+  } catch (err) { console.error('上下架失败:', err); res.status(500).json({ code:500, msg:'服务器错误' }); }
+});
+
+// ========== 分类管理 ==========
+
+// GET /api/admin/categories - 分类列表
+router.get('/categories', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM categories ORDER BY sort_order ASC, id ASC');
+    res.json({ code: 200, data: rows });
+  } catch (err) { console.error('获取分类失败:', err); res.status(500).json({ code: 500, msg: '服务器错误' }); }
+});
+
+// POST /api/admin/categories - 新增分类
+router.post('/categories', async (req, res) => {
+  const { name, icon, sort_order } = req.body;
+  if (!name) return res.status(400).json({ code: 400, msg: '分类名称必填' });
+  try {
+    const [result] = await pool.query('INSERT INTO categories (name, icon, sort_order) VALUES (?,?,?)', [name, icon||'', sort_order||0]);
+    res.json({ code: 200, msg: '分类添加成功', data: { id: result.insertId } });
+  } catch (err) { console.error('添加分类失败:', err); res.status(500).json({ code: 500, msg: '服务器错误' }); }
+});
+
+// PUT /api/admin/categories/:id - 更新分类
+router.put('/categories/:id', async (req, res) => {
+  const { name, icon, sort_order } = req.body;
+  try {
+    await pool.query('UPDATE categories SET name=?, icon=?, sort_order=? WHERE id=?', [name, icon||'', sort_order||0, req.params.id]);
+    res.json({ code: 200, msg: '分类更新成功' });
+  } catch (err) { console.error('更新分类失败:', err); res.status(500).json({ code: 500, msg: '服务器错误' }); }
+});
+
+// DELETE /api/admin/categories/:id - 删除分类
+router.delete('/categories/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM categories WHERE id=?', [req.params.id]);
+    res.json({ code: 200, msg: '分类已删除' });
+  } catch (err) { console.error('删除分类失败:', err); res.status(500).json({ code: 500, msg: '服务器错误' }); }
+});
+
 // ========== 统计数据 ==========
 
 // GET /api/admin/stats - 管理面板统计数据
