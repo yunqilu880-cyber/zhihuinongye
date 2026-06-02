@@ -66,7 +66,29 @@ async function initDatabase() {
     }
 
     console.log('✅ 数据库表结构创建完成');
-    console.log('✅ 初始数据插入完成');
+    console.log('');
+
+    // 导入完整商品数据
+    console.log('📦 正在导入商品数据...');
+    const productsPath = path.resolve(__dirname, '../products_export.json');
+    if (fs.existsSync(productsPath)) {
+      const products = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
+      // 先清空已有商品数据
+      await connection.query('DELETE FROM products');
+      await connection.query('ALTER TABLE products AUTO_INCREMENT = 1');
+      
+      for (const p of products) {
+        await connection.query(
+          `INSERT INTO products (id, name, description, price, original_price, stock, image, category_id, badge, weight, specs, is_featured, is_on_sale, sales)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [p.id, p.name, p.description, p.price, p.original_price, p.stock, p.image, p.category_id, p.badge, p.weight, p.specs, p.is_featured, p.is_on_sale, p.sales || 0]
+        );
+      }
+      console.log(`✅ 已导入 ${products.length} 条商品数据`);
+    } else {
+      console.log('⚠️  未找到 products_export.json，跳过商品导入');
+    }
+
     console.log('');
     console.log('📊 数据库 chase_shop 已就绪，包含以下表：');
     const [tables] = await connection.query('SHOW TABLES');
