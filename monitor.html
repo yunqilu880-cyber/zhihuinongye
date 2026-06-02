@@ -13,6 +13,8 @@
 <body>
 	<header id="top">
 		<div class="wrapper">
+			<!-- 语言切换按钮 -->
+			<a href="javascript:void(0)" class="lang-switch" onclick="var l=localStorage.getItem('chase_lang')||'zh';var nl=l==='zh'?'en':'zh';localStorage.setItem('chase_lang',nl);window.i18n.applyLang(nl);var btns=document.querySelectorAll('.lang-switch');btns.forEach(function(b){b.textContent=nl==='zh'?'EN':'中';});" style="display:inline-block;float:left;margin:65px 16px 0 40px;background:#2E7D32;color:#fff;padding:6px 16px;border-radius:999px;font-weight:700;font-size:13px;text-decoration:none;" onmouseover="this.style.background='#1B5E20'" onmouseout="this.style.background='#2E7D32'" data-i18n="lang.switch">EN</a>
 			<h1 class="logo"><a href="index.html" data-i18n="brand.name">智慧农业</a></h1>
 			<nav>
 				<ul id="navigation">

@@ -58,29 +58,11 @@
     }
   }
 
-  // 注入语言切换按钮到导航栏
-  function injectLangToggle() {
-    const nav = document.getElementById('navigation');
-    if (!nav) return;
-    // 避免重复注入
-    if (nav.querySelector('.lang-toggle-li')) return;
-    const lang = localStorage.getItem('chase_lang') || 'zh';
-    const langLabel = lang === 'zh' ? 'EN' : '中';
-    const li = document.createElement('li');
-    li.className = 'lang-toggle-li';
-    li.innerHTML = `<a href="javascript:void(0)" class="lang-toggle-btn" onclick="(function(){var l=localStorage.getItem('chase_lang')||'zh';var nl=l==='zh'?'en':'zh';localStorage.setItem('chase_lang',nl);window.i18n.applyLang(nl);var btns=document.querySelectorAll('.lang-toggle-btn');btns.forEach(function(b){b.textContent=nl==='zh'?'EN':'中';});})()" style="background:#2E7D32;color:#fff;padding:6px 14px;border-radius:999px;font-weight:700;font-size:13px;margin-left:8px;">${langLabel}</a>`;
-    nav.appendChild(li);
-  }
-
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      updateNavigation();
-      injectLangToggle();
-    });
+    document.addEventListener('DOMContentLoaded', updateNavigation);
   } else {
     updateNavigation();
-    injectLangToggle();
   }
 
-  window.ChaseAuth = { getToken, getUser, isLoggedIn, logout: window.logout, updateNavigation, injectLangToggle };
+  window.ChaseAuth = { getToken, getUser, isLoggedIn, logout: window.logout, updateNavigation };
 })();

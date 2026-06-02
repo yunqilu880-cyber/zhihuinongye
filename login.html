@@ -28,8 +28,6 @@
 		.auth-error.show { display: block; }
 		.back-link { display: block; text-align: center; margin-top: 20px; color: #999; font-size: 14px; text-decoration: none; }
 		.back-link:hover { color: #2E7D32; }
-		.lang-bar { text-align: center; padding: 20px; }
-		.lang-bar a { display: inline-block; background: #2E7D32; color: #fff; padding: 6px 16px; border-radius: 999px; font-weight: 700; font-size: 13px; text-decoration: none; cursor: pointer; }
 	</style>
 </head>
 <body>
@@ -79,10 +77,6 @@
 				<a href="index.html" class="back-link" data-i18n="login.back">← 返回首页</a>
 			</form>
 		</div>
-	</div>
-
-	<div class="lang-bar">
-		<a href="javascript:void(0)" class="lang-toggle-btn" onclick="var l=localStorage.getItem('chase_lang')||'zh';var nl=l==='zh'?'en':'zh';localStorage.setItem('chase_lang',nl);window.i18n.applyLang(nl);this.textContent=nl==='zh'?'EN':'中';" data-i18n="lang.switch">EN</a>
 	</div>
 
 	<script src="js/i18n.js"></script>
