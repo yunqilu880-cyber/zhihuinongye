@@ -132,6 +132,13 @@
 			border: 2px solid #2E7D32 !important;
 		}
 		.btn-back-shop:hover { background: #E8F5E9; }
+		.btn-save-order {
+			background: #fff;
+			color: #F57C00;
+			border: 2px solid #F57C00 !important;
+		}
+		.btn-save-order:hover { background: #FFF3E0; }
+		.btn-save-order:disabled { border-color: #BBB !important; color: #BBB; cursor: not-allowed; }
 		/* Toast */
 		.toast {
 			position: fixed;
@@ -242,6 +249,7 @@
 		<div class="checkout-actions">
 			<button class="btn-back-shop" onclick="goBackShop()">← 继续购物</button>
 			<button class="btn-cancel-order" id="btnCancelOrder" onclick="cancelOrder()">🗑 放弃订单</button>
+			<button class="btn-save-order" id="btnSaveOrder" onclick="saveOrder()">💾 保存订单</button>
 			<button class="btn-pay" id="btnPay" onclick="payOrder()">💰 去付款</button>
 		</div>
 	</div>
@@ -463,30 +471,58 @@
 			}
 		}
 
-		// 放弃订单（如果已下单则取消，否则直接返回）
-		function cancelOrder() {
-			if (!currentOrderId) {
-				// 还没创建订单，直接回商城
+		// 放弃订单（取消订单 + 清空购物车）
+		async function cancelOrder() {
+			if (!confirm('确定放弃此订单？购物车将被清空。')) return;
+
+			if (currentOrderId) {
+				// 已下单：先取消订单恢复库存
+				try {
+					await fetch(API_BASE + '/orders/' + currentOrderId + '/cancel', {
+						method: 'PUT',
+						headers: { 'Authorization': 'Bearer ' + token },
+					});
+				} catch(e) {}
+			}
+
+			// 清空购物车（如果还有剩余商品）
+			try {
+				await fetch(API_BASE + '/cart', {
+					method: 'DELETE',
+					headers: { 'Authorization': 'Bearer ' + token },
+				});
+			} catch(e) {}
+
+			showResult('🗑', '订单已放弃', '购物车已清空，欢迎再次选购。', () => {
 				window.location.href = 'shop.html';
+			});
+		}
+
+		// 保存订单（仅创建订单，不支付）
+		async function saveOrder() {
+			if (!selectedAddrId) {
+				showToast('请选择收货地址');
 				return;
 			}
-			if (!confirm('确定放弃此订单？商品将恢复库存。')) return;
+			if (cartProducts.length === 0) {
+				showToast('商品已失效');
+				return;
+			}
 
-			fetch(API_BASE + '/orders/' + currentOrderId + '/cancel', {
-				method: 'PUT',
-				headers: { 'Authorization': 'Bearer ' + token },
-			})
-				.then(r => r.json())
-				.then(data => {
-					if (data.code === 200) {
-						showResult('🗑', '订单已取消', '商品已恢复库存，欢迎再次选购。', () => {
-							window.location.href = 'shop.html';
-						});
-					} else {
-						showToast(data.msg || '取消失败');
-					}
-				})
-				.catch(() => showToast('操作失败'));
+			const btn = document.getElementById('btnSaveOrder');
+			btn.disabled = true;
+			btn.textContent = '处理中...';
+
+			const orderData = await createOrder();
+
+			btn.disabled = false;
+			btn.textContent = '💾 保存订单';
+
+			if (orderData) {
+				showResult('💾', '订单已保存', `订单号：${orderData.order_no}\n金额：¥${orderData.total_amount}\n订单已创建为"待支付"状态，您可以稍后前往个人中心付款。`, () => {
+					window.location.href = 'user-center.html';
+				});
+			}
 		}
 
 		// 继续购物

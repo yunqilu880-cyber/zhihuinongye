@@ -182,6 +182,14 @@
 		}
 		.toast.show { opacity: 1; }
 
+		.search-row { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+		.search-row select { padding: 8px 14px; border: 2px solid #E0E0E0; border-radius: 8px; font-size: 14px; outline: none; }
+		.search-row select:focus { border-color: #2E7D32; }
+		.pagination { display: flex; justify-content: center; gap: 8px; padding: 10px; }
+		.pagination button { padding: 6px 12px; border: 2px solid #C8E6C9; background: #fff; border-radius: 8px; cursor: pointer; font-weight: 700; color: #2E7D32; }
+		.pagination button.active { background: #2E7D32; color: #fff; border-color: #2E7D32; }
+		.pagination button:disabled { color: #CCC; cursor: not-allowed; }
+
 		@media only screen and (max-width: 600px) {
 			.tab-content { padding: 20px 12px; }
 		}
@@ -221,9 +229,18 @@
 
 	<!-- 订单列表 -->
 	<div class="tab-content active" id="tab-orders">
-		<div id="orderList">
-			<div class="empty-state"><div class="icon">📦</div>加载中...</div>
+		<div class="search-row" style="margin-bottom:12px;">
+			<select id="orderStatusFilter" onchange="changeOrderStatus()">
+				<option value="">全部订单</option>
+				<option value="pending">待支付</option>
+				<option value="paid">已支付</option>
+				<option value="shipped">已发货</option>
+				<option value="completed">已完成</option>
+				<option value="cancelled">已取消</option>
+			</select>
 		</div>
+		<div id="orderList"><div class="empty-state"><div class="icon">📦</div>加载中...</div></div>
+		<div class="pagination" id="orderPager"></div>
 	</div>
 
 	<!-- 收货地址 -->
@@ -328,20 +345,31 @@
 		}
 
 		// ===== 订单 =====
-		async function loadOrders() {
+		let orderPage = 1;
+		let orderFilterStatus = '';
+		const ORDER_PAGE_SIZE = 8;
+
+		function changeOrderStatus() {
+			orderFilterStatus = document.getElementById('orderStatusFilter').value;
+			orderPage = 1;
+			loadOrders();
+		}
+
+		async function loadOrders(page) {
+			if (page) orderPage = page;
 			const container = document.getElementById('orderList');
+			const pager = document.getElementById('orderPager');
 			try {
-				const res = await fetch(API_BASE + '/orders', {
+				const params = new URLSearchParams({ page: orderPage, pageSize: ORDER_PAGE_SIZE });
+				if (orderFilterStatus) params.append('status', orderFilterStatus);
+				const res = await fetch(API_BASE + '/orders?' + params.toString(), {
 					headers: { 'Authorization': 'Bearer ' + token },
 				});
 				const data = await res.json();
 				if (data.code === 200 && data.data.list.length > 0) {
-					const statusMap = {
-						pending: '待支付', paid: '已支付', shipped: '已发货',
-						delivered: '运输中', completed: '已完成',
-						cancelled: '已取消', refunding: '退款中', refunded: '已退款'
-					};
-					container.innerHTML = data.data.list.map(o => `
+					const { list, total, page, totalPages } = data.data;
+					const statusMap = { pending: '待支付', paid: '已支付', shipped: '已发货', delivered: '运输中', completed: '已完成', cancelled: '已取消', refunding: '退款中', refunded: '已退款' };
+					container.innerHTML = list.map(o => `
 						<div class="order-item">
 							<div class="order-header">
 								<span class="order-no">订单号：${o.order_no}</span>
@@ -349,23 +377,46 @@
 							</div>
 							<div class="order-product">
 								<div class="order-info">
-									<h5>共 ${o.item_count} 件商品</h5>
-									<div class="meta">${new Date(o.created_at).toLocaleString('zh-CN')}</div>
+									<h5>共 ${o.item_count} 件商品 · ¥${o.total_amount}</h5>
+									<div class="meta">${new Date(o.created_at).toLocaleString('zh-CN')} | ${o.receiver_name} ${o.receiver_phone} | ${o.receiver_address}</div>
 								</div>
 							</div>
-							<div class="order-total">¥${o.total_amount}</div>
 							<div class="order-actions">
-								${o.status === 'pending' ? `<button class="danger" onclick="cancelOrder(${o.id})">取消订单</button>` : ''}
+								${o.status === 'pending' ? `<button onclick="payOrder(${o.id})" style="border-color:#1976D2;color:#1976D2;">去付款</button><button class="danger" onclick="cancelOrder(${o.id})">取消</button>` : ''}
+								${o.status === 'paid' ? `<span style="color:#1976D2;font-size:13px;">等待发货</span>` : ''}
 								${o.status === 'shipped' ? `<button onclick="confirmOrder(${o.id})">确认收货</button>` : ''}
+								${o.status === 'completed' ? `<span style="color:#2E7D32;font-size:13px;">已完成</span>` : ''}
 							</div>
 						</div>
 					`).join('');
+					// 分页
+					if (totalPages > 1) {
+						let pg = '<button onclick="loadOrders('+(page-1)+')" '+(page<=1?'disabled':'')+'>‹</button>';
+						for (let i = 1; i <= totalPages; i++) pg += '<button class="'+(i===page?'active':'')+'" onclick="loadOrders('+i+')">'+i+'</button>';
+						pg += '<button onclick="loadOrders('+(page+1)+')" '+(page>=totalPages?'disabled':'')+'>›</button>';
+						pager.innerHTML = pg;
+					} else { pager.innerHTML = ''; }
 				} else {
 					container.innerHTML = '<div class="empty-state"><div class="icon">📦</div>暂无订单<br><a href="shop.html">去逛逛 →</a></div>';
+					pager.innerHTML = '';
 				}
 			} catch (err) {
 				container.innerHTML = '<div class="empty-state" style="color:#E53935;">加载失败</div>';
+				pager.innerHTML = '';
 			}
+		}
+
+		async function payOrder(orderId) {
+			if (!confirm('确认支付此订单？')) return;
+			try {
+				const res = await fetch(API_BASE + '/orders/' + orderId + '/pay', {
+					method: 'PUT',
+					headers: { 'Authorization': 'Bearer ' + token },
+				});
+				const data = await res.json();
+				if (data.code === 200) { showToast('支付成功'); loadOrders(); }
+				else showToast(data.msg);
+			} catch (err) { showToast('操作失败'); }
 		}
 
 		async function cancelOrder(id) {
